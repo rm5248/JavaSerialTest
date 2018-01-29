@@ -84,7 +84,7 @@ public class SerialTest {
     }
     
     private static void testTx() throws IOException {
-        port1.getOutputStream().write( "This is a test string".getBytes() );
+        port1.getOutputStream().write( "This is a test string\n".getBytes() );
     }
     
     private static void testRx() throws IOException {
