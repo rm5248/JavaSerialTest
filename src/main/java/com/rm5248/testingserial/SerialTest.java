@@ -9,7 +9,10 @@ import com.rm5248.serial.NoSuchPortException;
 import com.rm5248.serial.NotASerialPortException;
 import com.rm5248.serial.SerialLineState;
 import com.rm5248.serial.SerialPort;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,7 +25,7 @@ public class SerialTest {
     private static SerialPort port1;
     private static SerialPort port2;
     
-    public static void main( String[] args ){
+    public static void main( String[] args ) throws IOException {
         System.out.println( "OS arch: " + System.getProperty( "os.arch" ) );
         System.out.println( "Loading serial port" );
         System.out.println( "Java version: " + SerialPort.getMajorVersion() + "." + SerialPort.getMinorVersion() );
@@ -34,33 +37,59 @@ public class SerialTest {
             System.out.println( "  " + ports[ x ] );
         }
         
-        if( args.length == 0 ){
+        if( args.length <= 1 ){
             return;
         }
         
-        try {
-            port1 = new SerialPort( args[ 0 ] );
-        } catch (NoSuchPortException ex) {
-            ex.printStackTrace();
-            return;
-        } catch (NotASerialPortException ex) {
-            ex.printStackTrace();
-            return;
+        if( args.length >= 2 ){
+            try {
+                port1 = new SerialPort( args[ 1 ] );
+            } catch (NoSuchPortException ex) {
+                ex.printStackTrace();
+                return;
+            } catch (NotASerialPortException ex) {
+                ex.printStackTrace();
+                return;
+            }
         }
         
-        try {
-            port2 = new SerialPort( args[ 1 ] );
-        } catch (NoSuchPortException ex) {
-            ex.printStackTrace();
-            return;
-        } catch (NotASerialPortException ex) {
-            ex.printStackTrace();
-            return;
+        if( args.length >= 3 ){
+            try {
+                port2 = new SerialPort( args[ 2 ] );
+            } catch (NoSuchPortException ex) {
+                ex.printStackTrace();
+                return;
+            } catch (NotASerialPortException ex) {
+                ex.printStackTrace();
+                return;
+            }
         }
         
-        
-        checkStates();
+        if( args[ 0 ].equals( "test-states" ) ){
+            checkStates();
+        }
 
+        if( args[ 0 ].equals( "test-tx" ) ){
+            testTx();
+        }
+        
+        if( args[ 0 ].equals( "test-rx" ) ){
+            testRx();
+        }
+        
+        port1.close();
+        if( port2 != null ){
+            port2.close();
+        }
+    }
+    
+    private static void testTx() throws IOException {
+        port1.getOutputStream().write( "This is a test string".getBytes() );
+    }
+    
+    private static void testRx() throws IOException {
+        BufferedReader reader = new BufferedReader( new InputStreamReader( port1.getInputStream() ) );
+        System.out.println( "Got line: " + reader.readLine() );
     }
     
     private static void checkStates(){        
