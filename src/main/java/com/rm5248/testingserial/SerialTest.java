@@ -9,6 +9,7 @@ import com.rm5248.serial.NoSuchPortException;
 import com.rm5248.serial.NotASerialPortException;
 import com.rm5248.serial.SerialLineState;
 import com.rm5248.serial.SerialPort;
+import com.rm5248.serial.SerialPort.BaudRate;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,30 +18,46 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * -Dcom.rm5248.javaserial.lib.path=/home/robert/JavaSerial/NativeCode/build
  * @author Rob
  */
 public class SerialTest {
-    
+
     private static SerialPort port1;
     private static SerialPort port2;
-    
+
     public static void main( String[] args ) throws IOException {
         System.out.println( "OS arch: " + System.getProperty( "os.arch" ) );
         System.out.println( "Loading serial port" );
         System.out.println( "Java version: " + SerialPort.getMajorVersion() + "." + SerialPort.getMinorVersion() );
         System.out.println( "Native code version: " + SerialPort.getMajorNativeVersion() + "." + SerialPort.getMinorNativeVersion() );
-        
+
         System.out.println( "All ports: " );
         String[] ports = SerialPort.getSerialPorts();
         for( int x = 0; x < ports.length; x++ ){
             System.out.println( "  " + ports[ x ] );
         }
-        
+
+        while( true ){
+            try{
+                Thread.sleep( 1000 );
+            }catch( Exception ex ){}
+
+            try{
+                SerialPort s = new SerialPort( "/dev/ttyS2", BaudRate.B115200 );
+
+                if( s.getPortName().equals( "jklasdf" ) ){
+                    break;
+                }
+            }catch( Exception ex ){
+                ex.printStackTrace();
+            }
+        }
+
         if( args.length <= 1 ){
             return;
         }
-        
+
         if( args.length >= 2 ){
             try {
                 port1 = new SerialPort( args[ 1 ] );
@@ -52,7 +69,7 @@ public class SerialTest {
                 return;
             }
         }
-        
+
         if( args.length >= 3 ){
             try {
                 port2 = new SerialPort( args[ 2 ] );
@@ -64,7 +81,7 @@ public class SerialTest {
                 return;
             }
         }
-        
+
         if( args[ 0 ].equals( "test-states" ) ){
             checkStates();
         }
@@ -72,31 +89,31 @@ public class SerialTest {
         if( args[ 0 ].equals( "test-tx" ) ){
             testTx();
         }
-        
+
         if( args[ 0 ].equals( "test-rx" ) ){
             testRx();
         }
-        
+
         port1.close();
         if( port2 != null ){
             port2.close();
         }
     }
-    
+
     private static void testTx() throws IOException {
         port1.getOutputStream().write( "This is a test string\n".getBytes() );
     }
-    
+
     private static void testRx() throws IOException {
         BufferedReader reader = new BufferedReader( new InputStreamReader( port1.getInputStream() ) );
         System.out.println( "Got line: " + reader.readLine() );
     }
-    
-    private static void checkStates(){        
+
+    private static void checkStates(){
         try{
             SerialLineState port1State = port1.getSerialLineState();
             SerialLineState port2State = port2.getSerialLineState();
-            
+
             for( int x = 0; x < 10000000; x++ ){
                 SerialLineState port1new = port1.getSerialLineState();
                 SerialLineState port2new = port2.getSerialLineState();
@@ -111,19 +128,19 @@ public class SerialTest {
 
                 port1State = port1new;
                 port2State = port2new;
-                
+
                 if( x % 100000 == 0 ){
                     System.out.println( "Time " + x );
                 }
-                
+
                 Thread.sleep( 10 );
             }
-            
+
         }catch( IOException | InterruptedException ex ){
-            
-        } 
+
+        }
     }
-    
+
     private static void testInterrupt(){
         Thread thisThread = Thread.currentThread();
         Interruptor i;
@@ -131,7 +148,7 @@ public class SerialTest {
         i = new Interruptor( port1 );
         Thread t2 = new Thread( i );
         t2.start();
-        
+
         int val;
         try {
             val = port1.getInputStream().read();
@@ -141,5 +158,5 @@ public class SerialTest {
         }
         System.out.println( "got " + val );
     }
-    
+
 }
